@@ -2,40 +2,72 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraController : MonoBehaviour
+public class CameraController : Singleton<CameraController>
 {
    
     public GameObject sawPrefab;
     public float throwForce = 40f;
     public float speed = 2f;
+    private float normalSpeed;
     public bool canShoot = false;
-    public bool isGameStarted = false;
+    public bool treeCollapsed = false;
+    public bool isAnimateOver = false;
+    private int currentTreeNumber;
     public List<Transform> CameraPositions;
     public List<Tree> TreesOnLevel;
 
 
     private void Start()
     {
-
+        normalSpeed = speed;   
     }
     void Update()
     {
-        if (Input.GetMouseButtonDown(0) && canShoot)
+        if (Input.GetMouseButtonDown(0) && canShoot && !treeCollapsed)
         {
             ThrowSaw();
         }
+        
 
-        if (GameManager.Instance.gameState == GameState.Play && !isGameStarted)
+        if (GameManager.Instance.gameState == GameState.Play && !isAnimateOver)
         {
-            float step = speed * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, CameraPositions[0].position, step);
-            TreesOnLevel[0].PoppedUpTree();
-            if(Vector3.Distance(transform.position , CameraPositions[0].position)< 0.001)
+            if (treeCollapsed)
             {
-                canShoot = true;
-                isGameStarted = true;
+                if(currentTreeNumber < TreesOnLevel.Count)
+                {
+                    currentTreeNumber++;
+                }
+                
+                treeCollapsed = false;
             }
+            if(currentTreeNumber != TreesOnLevel.Count)
+            {
+                if(Vector3.Distance(transform.position, CameraPositions[currentTreeNumber].position) >= 5)
+                {
+                    speed = normalSpeed * 2.5f;
+                }
+                else 
+                {
+                    speed = normalSpeed;
+                }
+                float step = speed * Time.deltaTime;
+                transform.position = Vector3.MoveTowards(transform.position, CameraPositions[currentTreeNumber].position, step);
+                TreesOnLevel[currentTreeNumber].PoppedUpTree();
+                if (Vector3.Distance(transform.position, CameraPositions[currentTreeNumber].position) < 0.001)
+                {
+                    canShoot = true;
+                    isAnimateOver = true;
+                }
+            }
+            else
+            {
+                canShoot = false; ;
+                GameManager.Instance.gameState = GameState.Win;
+                
+            }
+  
         }
+       
                 
         //if (CameraPositions[1] != null)
         //{
