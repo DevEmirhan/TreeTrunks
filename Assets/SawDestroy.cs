@@ -28,6 +28,7 @@ public class SawDestroy : MonoBehaviour
         //IF Finish; Make the Camera Controller passes to Winning Sequence;
         if(collision.gameObject.tag == "Finish")
         {
+            Destroy(collision.gameObject);
             Instantiate(sawFx, transform.position, transform.rotation);
             CameraController.Instance.canShoot = false;
             CameraController.Instance.treeCollapsed = true;
